@@ -89,7 +89,14 @@ app.layout = html.Div(
         ),
         html.Div(
             children=[
-                dcc.Graph(id="sales-by-category-quarter"),  # Move this chart to the top
+                dcc.Graph(id="sales-by-category-quarter"),
+                html.Div(
+                    children=[
+                        dcc.Graph(id="products-by-brand"),
+                        dcc.Graph(id="products-by-category"),
+                    ],
+                    style={'display': 'flex', 'justify-content': 'space-around'}
+                ),
                 dcc.Graph(id="sales-trend-chart"),
                 dcc.Graph(id="total-sales-chart"),
             ],
@@ -103,6 +110,8 @@ app.layout = html.Div(
     Output("sales-trend-chart", "figure"),
     Output("total-sales-chart", "figure"),
     Output("sales-by-category-quarter", "figure"),
+    Output("products-by-brand", "figure"),
+    Output("products-by-category", "figure"),
     Input("product-filter", "value"),
     Input("customer-filter", "value"),
     Input("category-filter", "value"),
@@ -136,7 +145,7 @@ def update_charts(product_name, customer_name, category, brand, start_date, end_
     """
     filtered_data = pd.read_sql(query, con=engine)
 
-    # Aggregate data by month
+    # Monthly Sales Trend Line Chart
     filtered_data["date"] = pd.to_datetime(filtered_data["date"])
     monthly_data = (
         filtered_data.set_index("date")
@@ -145,7 +154,6 @@ def update_charts(product_name, customer_name, category, brand, start_date, end_
         .reset_index()
     )
 
-    # Monthly Sales Trend Line Chart
     sales_trend_figure = {
         "data": [
             {
@@ -154,8 +162,6 @@ def update_charts(product_name, customer_name, category, brand, start_date, end_
                 "type": "scatter",
                 "mode": "lines+markers",
                 "line": {"shape": "spline", "color": "#1f77b4"},
-                "name": "Sales Trend (Monthly)",
-                "hovertemplate": "Date: %{x|%Y-%m}<br>Sales Amount: %{y}<extra></extra>",
             },
         ],
         "layout": {
@@ -165,9 +171,7 @@ def update_charts(product_name, customer_name, category, brand, start_date, end_
         },
     }
 
-
-
-    # Stacked Bar Chart for Total Sales Amount by Product and Customer
+    # Total Sales Chart
     total_sales_figure = {
         "data": [
             {
@@ -175,8 +179,6 @@ def update_charts(product_name, customer_name, category, brand, start_date, end_
                 "y": filtered_data["total_amount"],
                 "type": "bar",
                 "marker": {"color": "#ff7f0e"},
-                "name": "Total Sales",
-                "hovertemplate": "Date: %{x}<br>Amount: %{y}<extra></extra>",
             },
         ],
         "layout": {
@@ -187,7 +189,7 @@ def update_charts(product_name, customer_name, category, brand, start_date, end_
         },
     }
 
-    # New Chart: Stacked Bar Chart for Sales by Product Category and Quarter
+    # Sales by Category and Quarter
     category_quarter_data = (
         filtered_data.groupby(["quarter", "product_category"])["total_amount"]
         .sum()
@@ -201,7 +203,6 @@ def update_charts(product_name, customer_name, category, brand, start_date, end_
                 "y": category_quarter_data[category_quarter_data["product_category"] == category]["total_amount"],
                 "type": "bar",
                 "name": category,
-                "hovertemplate": "Quarter: %{x}<br>Total Sales: %{y}<extra></extra>",
             }
             for category in category_quarter_data["product_category"].unique()
         ],
@@ -213,7 +214,39 @@ def update_charts(product_name, customer_name, category, brand, start_date, end_
         },
     }
 
-    return sales_trend_figure, total_sales_figure, sales_by_category_quarter
+    # Pie chart for Products by Brand
+    brand_data = filtered_data["product_brand"].value_counts()
+    products_by_brand = {
+        "data": [
+            {
+                "labels": brand_data.index,
+                "values": brand_data.values,
+                "type": "pie",
+                "hole": 0.3,
+            }
+        ],
+        "layout": {
+            "title": "Products by Brand",
+        },
+    }
+
+    # Pie chart for Products by Category
+    category_data = filtered_data["product_category"].value_counts()
+    products_by_category = {
+        "data": [
+            {
+                "labels": category_data.index,
+                "values": category_data.values,
+                "type": "pie",
+                "hole": 0.3,
+            }
+        ],
+        "layout": {
+            "title": "Products by Category",
+        },
+    }
+
+    return sales_trend_figure, total_sales_figure, sales_by_category_quarter, products_by_brand, products_by_category
 
 if __name__ == "__main__":
     app.run_server(debug=True)
