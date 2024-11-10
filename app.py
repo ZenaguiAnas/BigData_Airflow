@@ -89,14 +89,15 @@ app.layout = html.Div(
         ),
         html.Div(
             children=[
+                dcc.Graph(id="sales-by-category-quarter"),  # Move this chart to the top
                 dcc.Graph(id="sales-trend-chart"),
                 dcc.Graph(id="total-sales-chart"),
-                dcc.Graph(id="sales-by-category-quarter"),  # New chart for sales by category and quarter
             ],
             className="charts",
         ),
     ]
 )
+
 
 @app.callback(
     Output("sales-trend-chart", "figure"),
@@ -135,25 +136,36 @@ def update_charts(product_name, customer_name, category, brand, start_date, end_
     """
     filtered_data = pd.read_sql(query, con=engine)
 
-    # Sales Trend Line Chart
+    # Aggregate data by month
+    filtered_data["date"] = pd.to_datetime(filtered_data["date"])
+    monthly_data = (
+        filtered_data.set_index("date")
+        .resample("M")
+        .sum()
+        .reset_index()
+    )
+
+    # Monthly Sales Trend Line Chart
     sales_trend_figure = {
         "data": [
             {
-                "x": filtered_data["date"],
-                "y": filtered_data["total_amount"],
+                "x": monthly_data["date"],
+                "y": monthly_data["total_amount"],
                 "type": "scatter",
                 "mode": "lines+markers",
                 "line": {"shape": "spline", "color": "#1f77b4"},
-                "name": "Sales Trend",
-                "hovertemplate": "Date: %{x}<br>Sales Amount: %{y}<extra></extra>",
+                "name": "Sales Trend (Monthly)",
+                "hovertemplate": "Date: %{x|%Y-%m}<br>Sales Amount: %{y}<extra></extra>",
             },
         ],
         "layout": {
-            "title": f"Sales Trend",
-            "xaxis": {"title": "Date"},
+            "title": "Monthly Sales Trend",
+            "xaxis": {"title": "Month"},
             "yaxis": {"title": "Sales Amount"},
         },
     }
+
+
 
     # Stacked Bar Chart for Total Sales Amount by Product and Customer
     total_sales_figure = {
