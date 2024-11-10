@@ -11,6 +11,7 @@ data = (
         SELECT DISTINCT 
             p.product_name, 
             p.product_category,
+            p.product_brand,
             c.full_name, 
             d.date AS order_date,
             d.quarter,
@@ -25,8 +26,10 @@ data = (
 )
 
 # Get unique values for filters
-products = data["product_name"].sort_values().unique()
-customers = data["full_name"].sort_values().unique()
+products = ["All"] + data["product_name"].sort_values().unique().tolist()
+customers = ["All"] + data["full_name"].sort_values().unique().tolist()
+categories = ["All"] + data["product_category"].sort_values().unique().tolist()
+brands = ["All"] + data["product_brand"].sort_values().unique().tolist()
 
 app = Dash(__name__)
 app.title = "Enhanced Sales Analytics"
@@ -45,7 +48,7 @@ app.layout = html.Div(
                 dcc.Dropdown(
                     id="product-filter",
                     options=[{"label": product, "value": product} for product in products],
-                    value=products[0],
+                    value="All",
                     clearable=False,
                     className="dropdown",
                     placeholder="Select Product",
@@ -53,10 +56,26 @@ app.layout = html.Div(
                 dcc.Dropdown(
                     id="customer-filter",
                     options=[{"label": customer, "value": customer} for customer in customers],
-                    value=customers[0],
+                    value="All",
                     clearable=False,
                     className="dropdown",
                     placeholder="Select Customer",
+                ),
+                dcc.Dropdown(
+                    id="category-filter",
+                    options=[{"label": category, "value": category} for category in categories],
+                    value="All",
+                    clearable=False,
+                    className="dropdown",
+                    placeholder="Select Category",
+                ),
+                dcc.Dropdown(
+                    id="brand-filter",
+                    options=[{"label": brand, "value": brand} for brand in brands],
+                    value="All",
+                    clearable=False,
+                    className="dropdown",
+                    placeholder="Select Brand",
                 ),
                 dcc.DatePickerRange(
                     id="date-range",
@@ -85,19 +104,34 @@ app.layout = html.Div(
     Output("sales-by-category-quarter", "figure"),
     Input("product-filter", "value"),
     Input("customer-filter", "value"),
+    Input("category-filter", "value"),
+    Input("brand-filter", "value"),
     Input("date-range", "start_date"),
     Input("date-range", "end_date"),
 )
-def update_charts(product_name, customer_name, start_date, end_date):
+def update_charts(product_name, customer_name, category, brand, start_date, end_date):
+    query_conditions = []
+    
+    # Filtering conditions based on selected options
+    if product_name != "All":
+        query_conditions.append(f"p.product_name = '{product_name}'")
+    if customer_name != "All":
+        query_conditions.append(f"c.full_name = '{customer_name}'")
+    if category != "All":
+        query_conditions.append(f"p.product_category = '{category}'")
+    if brand != "All":
+        query_conditions.append(f"p.product_brand = '{brand}'")
+    query_conditions.append(f"s.date BETWEEN '{start_date}' AND '{end_date}'")
+    
+    # Build the WHERE clause
+    where_clause = "WHERE " + " AND ".join(query_conditions)
     query = f"""
-    SELECT s.date, p.product_name, p.product_category, c.full_name, d.quarter, s.total_amount
+    SELECT s.date, p.product_name, p.product_category, p.product_brand, c.full_name, d.quarter, s.total_amount
     FROM sales_fact s
     JOIN product_dim p ON s.product_id = p.product_id
     JOIN customer_dim c ON s.customer_id = c.customer_id
     JOIN date_dim d ON s.date = d.date
-    WHERE p.product_name = '{product_name}'
-      AND c.full_name = '{customer_name}'
-      AND s.date BETWEEN '{start_date}' AND '{end_date}'
+    {where_clause}
     """
     filtered_data = pd.read_sql(query, con=engine)
 
@@ -109,13 +143,13 @@ def update_charts(product_name, customer_name, start_date, end_date):
                 "y": filtered_data["total_amount"],
                 "type": "scatter",
                 "mode": "lines+markers",
-                "line": {"shape": "spline", "color": "#1f77b4"},  # Smooth line with spline
+                "line": {"shape": "spline", "color": "#1f77b4"},
                 "name": "Sales Trend",
                 "hovertemplate": "Date: %{x}<br>Sales Amount: %{y}<extra></extra>",
             },
         ],
         "layout": {
-            "title": f"Sales Trend for {product_name}",
+            "title": f"Sales Trend",
             "xaxis": {"title": "Date"},
             "yaxis": {"title": "Sales Amount"},
         },
@@ -129,15 +163,15 @@ def update_charts(product_name, customer_name, start_date, end_date):
                 "y": filtered_data["total_amount"],
                 "type": "bar",
                 "marker": {"color": "#ff7f0e"},
-                "name": f"Total Sales for {customer_name}",
+                "name": "Total Sales",
                 "hovertemplate": "Date: %{x}<br>Amount: %{y}<extra></extra>",
             },
         ],
         "layout": {
-            "title": f"Total Sales Amount for {customer_name}",
+            "title": "Total Sales Amount",
             "xaxis": {"title": "Date"},
             "yaxis": {"title": "Total Amount"},
-            "barmode": "stack",  # Enable stacked bar mode
+            "barmode": "stack",
         },
     }
 
