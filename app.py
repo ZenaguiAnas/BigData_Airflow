@@ -45,44 +45,61 @@ app.layout = html.Div(
         ),
         html.Div(
             children=[
-                dcc.Dropdown(
-                    id="product-filter",
-                    options=[{"label": product, "value": product} for product in products],
-                    value="All",
-                    clearable=False,
-                    className="dropdown",
-                    placeholder="Select Product",
-                ),
-                dcc.Dropdown(
-                    id="customer-filter",
-                    options=[{"label": customer, "value": customer} for customer in customers],
-                    value="All",
-                    clearable=False,
-                    className="dropdown",
-                    placeholder="Select Customer",
-                ),
-                dcc.Dropdown(
-                    id="category-filter",
-                    options=[{"label": category, "value": category} for category in categories],
-                    value="All",
-                    clearable=False,
-                    className="dropdown",
-                    placeholder="Select Category",
-                ),
-                dcc.Dropdown(
-                    id="brand-filter",
-                    options=[{"label": brand, "value": brand} for brand in brands],
-                    value="All",
-                    clearable=False,
-                    className="dropdown",
-                    placeholder="Select Brand",
-                ),
-                dcc.DatePickerRange(
-                    id="date-range",
-                    min_date_allowed=data["Date"].min().date(),
-                    max_date_allowed=data["Date"].max().date(),
-                    start_date=data["Date"].min().date(),
-                    end_date=data["Date"].max().date(),
+                html.Div(
+                    children=[
+                        # Dropdowns and Date Picker Range
+                        dcc.Dropdown(
+                            id="product-filter",
+                            options=[{"label": product, "value": product} for product in products],
+                            value="All",
+                            clearable=False,
+                            placeholder="Select Product",
+                            className="dropdown",
+                        ),
+                        dcc.Dropdown(
+                            id="customer-filter",
+                            options=[{"label": customer, "value": customer} for customer in customers],
+                            value="All",
+                            clearable=False,
+                            placeholder="Select Customer",
+                            className="dropdown",
+                        ),
+                        dcc.Dropdown(
+                            id="category-filter",
+                            options=[{"label": category, "value": category} for category in categories],
+                            value="All",
+                            clearable=False,
+                            placeholder="Select Category",
+                            className="dropdown",
+                        ),
+                        dcc.Dropdown(
+                            id="brand-filter",
+                            options=[{"label": brand, "value": brand} for brand in brands],
+                            value="All",
+                            clearable=False,
+                            placeholder="Select Brand",
+                            className="dropdown",
+                        ),
+                        dcc.DatePickerRange(
+                            id="date-range",
+                            min_date_allowed=data["Date"].min().date(),
+                            max_date_allowed=data["Date"].max().date(),
+                            start_date=data["Date"].min().date(),
+                            end_date=data["Date"].max().date(),
+                            className="datepicker",
+                        ),
+                    ],
+                    style={
+                        "display": "flex",
+                        "flexWrap": "wrap",
+                        "justifyContent": "space-between",
+                        "gap": "10px",  # Increased gap
+                        "padding": "10px",
+                        "maxWidth": "1200px",  # Max width for the container
+                        "margin": "auto",  # Center the filters
+                        "marginBottom": "150px",  # Add bottom margin for spacing between filters and charts
+                    },
+                    className="filters",
                 ),
             ],
             className="menu",
@@ -106,6 +123,7 @@ app.layout = html.Div(
 )
 
 
+
 @app.callback(
     Output("sales-trend-chart", "figure"),
     Output("total-sales-chart", "figure"),
@@ -119,6 +137,7 @@ app.layout = html.Div(
     Input("date-range", "start_date"),
     Input("date-range", "end_date"),
 )
+
 def update_charts(product_name, customer_name, category, brand, start_date, end_date):
     query_conditions = []
     

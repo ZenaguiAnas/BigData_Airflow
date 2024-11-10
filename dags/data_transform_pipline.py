@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
+from airflow.utils.email import send_email
 from mysql.connector import Connect
 import pandas as pd
 
@@ -8,9 +9,26 @@ import pandas as pd
 default_args = {
     "owner": "airflow",
     "depends_on_past": False,
-    "email_on_failure": False,
-    "email_on_retry": False,
+    "email_on_failure": True,  # Set this to True to enable email notifications on failure
+    "email_on_retry": False,  # Set this to False to prevent emails on retries
+    "email": ["zenaguianas20@gmail.com"],  # Replace with your email address
+    "retries": 3,  # Number of retries before failing a task
+    "retry_delay": timedelta(minutes=1000),  # Delay between retries
 }
+
+
+def task_failure_alert(context):
+    task_instance = context.get("task_instance")
+    task_id = task_instance.task_id
+    dag_id = task_instance.dag_id
+    execution_date = context.get("execution_date")
+    message = f"Task {task_id} in DAG {dag_id} failed on {execution_date}."
+    
+    send_email(
+        to=["anas.zenagui@etu.uae.ac.ma"],  # Recipient email
+        subject=f"Airflow Task Failed: {task_id}",
+        html_content=message
+    )
 
 
 '''
@@ -370,49 +388,57 @@ dag = DAG(
 extract_customer_task = PythonOperator(
     task_id="extract_customer_data", 
     python_callable=extract_customer_data, 
-    dag=dag
+    dag=dag,
+    on_failure_callback=task_failure_alert
 )
 
 extract_product_task = PythonOperator(
     task_id="extract_product_data", 
     python_callable=extract_product_data, 
-    dag=dag
+    dag=dag,
+    on_failure_callback=task_failure_alert
 )
 
 extract_order_task = PythonOperator(
     task_id="extract_order_data", 
     python_callable=extract_order_data, 
-    dag=dag
+    dag=dag,
+    on_failure_callback=task_failure_alert
 )
 
 extract_date_task = PythonOperator(
     task_id="extract_date_data", 
     python_callable=extract_date_data, 
-    dag=dag
+    dag=dag,
+    on_failure_callback=task_failure_alert
 )
 
 transform_customer_task = PythonOperator(
     task_id="transform_customer_data", 
     python_callable=transform_customer_data, 
-    dag=dag
+    dag=dag,
+    on_failure_callback=task_failure_alert
 )
 
 transform_product_task = PythonOperator(
     task_id="transform_product_data", 
     python_callable=transform_product_data, 
-    dag=dag
+    dag=dag,
+    on_failure_callback=task_failure_alert
 )
 
 transform_order_task = PythonOperator(
     task_id="transform_order_data", 
     python_callable=transform_order_data, 
-    dag=dag
+    dag=dag,
+    on_failure_callback=task_failure_alert
 )
 
 load_data_task = PythonOperator(
     task_id="load_dim_dimension", 
     python_callable=load_date_data, 
-    dag=dag
+    dag=dag,
+    on_failure_callback=task_failure_alert
 )
 
 # load customer dimension data task 
@@ -420,6 +446,7 @@ load_customer_dim_task = PythonOperator(
     task_id="load_customer_dim_data",
     python_callable=load_customer_data,
     dag=dag,
+    on_failure_callback=task_failure_alert
 )
 
 # load product dimension data task 
@@ -427,6 +454,7 @@ load_product_dim_task = PythonOperator(
     task_id="load_product_dim_data",
     python_callable=load_product_data,
     dag=dag,
+    on_failure_callback=task_failure_alert
 )
 
 # load order dimension data task 
@@ -434,6 +462,7 @@ load_order_dim_task = PythonOperator(
     task_id="load_order_dim_data",
     python_callable=load_order_data,
     dag=dag,
+    on_failure_callback=task_failure_alert
 )
 
 
@@ -442,6 +471,7 @@ create_fact_sales = PythonOperator(
     task_id="create_fact_table",
     python_callable=create_fact_table,
     dag=dag,
+    on_failure_callback=task_failure_alert
 )
 
 [extract_customer_task >> transform_customer_task >> load_customer_dim_task,

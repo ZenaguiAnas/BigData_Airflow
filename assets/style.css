@@ -1,77 +1,176 @@
+/* Global Styles */
 body {
     font-family: "Lato", sans-serif;
     margin: 0;
-    background-color: #F7F7F7;
+    background-color: #f9f9f9;
+    color: #333333;
 }
 
+/* Header Styles */
 .header {
-    background-color: #222222;
-    height: 288px;
-    padding: 16px 0 0 0;
+    background-color: #079A82; /* Modern color */
+    height: 300px;
+    padding: 30px 0 20px 0;
+    color: white;
+    text-align: center;
 }
 
 .header-emoji {
-    font-size: 48px;
+    font-size: 50px;
     margin: 0 auto;
     text-align: center;
 }
 
 .header-title {
-    color: #FFFFFF;
     font-size: 48px;
-    font-weight: bold;
-    text-align: center;
-    margin: 0 auto;
+    font-weight: 700;
+    margin: 20px 0;
 }
 
 .header-description {
     color: #CFCFCF;
-    margin: 4px auto;
-    text-align: center;
-    max-width: 384px;
+    max-width: 600px;
+    margin: 0 auto 30px auto;
+    font-size: 18px;
 }
 
+/* Wrapper Styles */
 .wrapper {
-    margin-right: auto;
-    margin-left: auto;
-    max-width: 1024px;
-    padding-right: 10px;
-    padding-left: 10px;
-    margin-top: 32px;
+    margin: 40px auto;
+    max-width: 1200px;
+    padding: 0 15px;
 }
 
-.card {
-    margin-bottom: 24px;
-    box-shadow: 0 4px 6px 0 rgba(0, 0, 0, 0.18);
-}
-
+/* Menu / Filter Section Styles */
 .menu {
-    height: 112px;
-    width: 912px;
     display: flex;
-    justify-content: space-evenly;
-    padding-top: 24px;
-    margin: -80px auto 0 auto;
+    justify-content: center;
+    padding: 40px 20px;
     background-color: #FFFFFF;
-    box-shadow: 0 4px 6px 0 rgba(0, 0, 0, 0.18);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    margin-top: -120px;
 }
 
-.Select-control {
-    width: 256px;
-    height: 48px;
+.filters {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 10px;
+    margin-bottom: 50px;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
-.Select--single>.Select-control .Select-value,
-.Select-placeholder {
-    line-height: 48px;
+.dropdown {
+    width: 250px;
+    height: 50px;
+    font-size: 16px;
 }
 
-.Select--multi .Select-value-label {
-    line-height: 32px;
+.datepicker {
+    width: 250px;
+    height: 50px;
 }
 
-.menu-title {
-    margin-bottom: 6px;
-    font-weight: bold;
+/* Card Styles */
+.card {
+    margin-bottom: 30px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    padding: 20px;
+    background-color: #FFFFFF;
+}
+
+.card h3 {
+    font-size: 24px;
+    font-weight: 600;
     color: #079A82;
+}
+
+.card p {
+    color: #7A7A7A;
+    font-size: 16px;
+}
+
+/* Charts Section Styles */
+.charts {
+    margin-top: 50px;
+}
+
+.charts .dcc-graph {
+    margin-bottom: 40px;
+}
+
+/* Flex Layout for Charts */
+.charts .flex {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.charts .flex > div {
+    flex: 1;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    border-radius: 8px;
+    background-color: #FFFFFF;
+}
+
+/* Typography Updates */
+h1, h2, h3, h4 {
+    font-weight: 600;
+    color: #333333;
+}
+
+h2 {
+    font-size: 32px;
+    margin-bottom: 10px;
+}
+
+h3 {
+    font-size: 28px;
+    margin-bottom: 8px;
+}
+
+/* Buttons and Links */
+button, .link {
+    font-size: 16px;
+    padding: 12px 20px;
+    background-color: #079A82;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover, .link:hover {
+    background-color: #057D6C;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .header-title {
+        font-size: 36px;
+    }
+    .header-description {
+        font-size: 14px;
+    }
+    .filters {
+        flex-direction: column;
+        align-items: center;
+    }
+    .dropdown, .datepicker {
+        width: 90%;
+        margin-bottom: 15px;
+    }
+    .charts .flex {
+        flex-direction: column;
+    }
+    .charts .flex > div {
+        width: 100%;
+        margin-bottom: 20px;
+    }
 }
